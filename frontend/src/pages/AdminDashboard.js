@@ -190,8 +190,9 @@ useEffect(() => {
       }
 
       alert(`${modalType} ${editingItem ? 'updated' : 'created'} successfully!`);
-      closeModal();
-      fetchAllData();
+     closeModal();
+    window.location.reload();
+
     } catch (error) {
       console.error('Error saving data:', error);
       alert('Error saving data. Please try again.');
@@ -210,8 +211,9 @@ useEffect(() => {
         await axios.delete(`${API_URL}/api/admin/contacts/${id}`, getAuthHeaders());
       }
 
-      alert('Item deleted successfully!');
-      fetchAllData();
+      alert('Deleted');
+      window.location.reload();
+
     } catch (error) {
       console.error('Error deleting item:', error);
       alert('Error deleting item. Please try again.');
