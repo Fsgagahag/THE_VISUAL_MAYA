@@ -16,51 +16,75 @@ const AdminDashboard = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({});
 
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin/login');
-    } else {
-      fetchAllData();
-    }
-  }, []);
-
-  const getAuthHeaders = () => ({
-    headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
-  });
-
+useEffect(() => {
   const fetchAllData = async () => {
     try {
-      const [servicesRes, projectsRes, aboutRes, heroRes] = await Promise.all([
-        axios.get(`${API_URL}/api/services`),
-        axios.get(`${API_URL}/api/admin/projects`, getAuthHeaders()),
-        axios.get(`${API_URL}/api/about`),
-        axios.get(`${API_URL}/api/hero`)
-      ]);
+      const token = localStorage.getItem('adminToken');
+
+      if (!token) {
+        navigate('/admin/login');
+        return;
+      }
+
+      const getAuthHeaders = () => ({
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const [servicesRes, projectsRes, aboutRes, heroRes] =
+        await Promise.all([
+          axios.get(`${API_URL}/api/services`),
+          axios.get(
+            `${API_URL}/api/admin/projects`,
+            getAuthHeaders()
+          ),
+          axios.get(`${API_URL}/api/about`),
+          axios.get(`${API_URL}/api/hero`)
+        ]);
 
       setServices(servicesRes.data);
       setProjects(projectsRes.data);
       setAbout(aboutRes.data);
       setHero(heroRes.data);
 
-      // Fetch messages separately with error handling
       try {
-        const messagesRes = await axios.get(`${API_URL}/api/admin/contacts`, getAuthHeaders());
-        console.log('Messages fetched:', messagesRes.data);
+        const messagesRes = await axios.get(
+          `${API_URL}/api/admin/contacts`,
+          getAuthHeaders()
+        );
+
         setMessages(messagesRes.data || []);
       } catch (messageError) {
-        console.warn('Could not fetch messages:', messageError.message);
-        console.warn('Messages error details:', messageError.response?.data);
-        setMessages([]); // Set empty messages on error
+        console.warn(
+          'Could not fetch messages:',
+          messageError.message
+        );
+        setMessages([]);
       }
+
     } catch (error) {
       console.error('Error fetching data:', error);
-      if (error.response?.status === 401 || error.response?.status === 403) {
+
+      if (
+        error.response?.status === 401 ||
+        error.response?.status === 403
+      ) {
         localStorage.removeItem('adminToken');
         navigate('/admin/login');
       }
     }
   };
+
+  fetchAllData();
+}, [navigate]);
+
+
+  const getAuthHeaders = () => ({
+    headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
+  });
+
+ 
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
