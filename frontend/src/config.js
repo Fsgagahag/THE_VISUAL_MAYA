@@ -1,6 +1,8 @@
 // API Configuration
-// This file manages the API URL for different environments
+// This file manages the API URL
 
-export const API_URL = process.env.REACT_APP_API_URL || 'https://the-visual-maya-pvuz.vercel.app';
+export const API_URL =
+  process.env.REACT_APP_API_URL ||
+  'https://the-visual-maya-pvuz.vercel.app';
 
 export default API_URL;
