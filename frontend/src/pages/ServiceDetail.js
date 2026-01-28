@@ -7,66 +7,84 @@ import { API_URL } from '../config';
 const ServiceDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [service, setService] = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [zoomedImage, setZoomedImage] = useState(null);
 
+  // Fetch Service & Projects
   useEffect(() => {
+    const fetchServiceData = async () => {
+      try {
+        const [serviceRes, projectsRes] = await Promise.all([
+          axios.get(`${API_URL}/api/services/${id}`),
+          axios.get(`${API_URL}/api/services/${id}/projects`)
+        ]);
+
+        setService(serviceRes.data);
+        setProjects(projectsRes.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching service data:', error);
+        setLoading(false);
+      }
+    };
+
     fetchServiceData();
   }, [id]);
 
-  const fetchServiceData = async () => {
-    try {
-      const [serviceRes, projectsRes] = await Promise.all([
-        axios.get(`${API_URL}/api/services/${id}`),
-        axios.get(`${API_URL}/api/services/${id}/projects`)
-      ]);
-
-      setService(serviceRes.data);
-      setProjects(projectsRes.data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching service data:', error);
-      setLoading(false);
-    }
-  };
-
+  // Handle Image Zoom
   const handleImageClick = (project) => {
     if (project.media_type === 'image') {
       setZoomedImage(project);
     }
   };
 
+  // Close Zoom
   const closeZoom = () => {
     setZoomedImage(null);
   };
 
+  // Loading State
   if (loading) {
     return (
       <div className="service-detail">
-        <p style={{ textAlign: 'center', fontSize: '1.5rem' }}>Loading...</p>
+        <p style={{ textAlign: 'center', fontSize: '1.5rem' }}>
+          Loading...
+        </p>
       </div>
     );
   }
 
+  // Not Found State
   if (!service) {
     return (
       <div className="service-detail">
-        <p style={{ textAlign: 'center', fontSize: '1.5rem' }}>Service not found</p>
+
+        <p style={{ textAlign: 'center', fontSize: '1.5rem' }}>
+          Service not found
+        </p>
+
         <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-          <button className="back-button" onClick={() => navigate('/')}>
+          <button
+            className="back-button"
+            onClick={() => navigate('/')}
+          >
             Back to Home
           </button>
         </div>
+
       </div>
     );
   }
 
   return (
     <div className="service-detail">
-      <motion.button 
-        className="back-button" 
+
+      {/* Back Button */}
+      <motion.button
+        className="back-button"
         onClick={() => navigate('/')}
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
@@ -76,7 +94,8 @@ const ServiceDetail = () => {
         ← Back to Home
       </motion.button>
 
-      <motion.div 
+      {/* Header */}
+      <motion.div
         className="service-header"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -86,88 +105,132 @@ const ServiceDetail = () => {
         <p>{service.description}</p>
       </motion.div>
 
+      {/* No Projects */}
       {projects.length === 0 ? (
-        <motion.p 
-          style={{ textAlign: 'center', fontSize: '1.3rem', opacity: 0.7 }}
+
+        <motion.p
+          style={{
+            textAlign: 'center',
+            fontSize: '1.3rem',
+            opacity: 0.7
+          }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.7 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           No projects available yet for this service.
         </motion.p>
+
       ) : (
+
+        /* Projects Grid */
         <div className="projects-grid">
+
           {projects.map((project, index) => (
+
             <motion.div
               key={project.id}
               className="project-card"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{
+                duration: 0.5,
+                delay: index * 0.1
+              }}
               whileHover={{ scale: 1.05 }}
             >
-              <div 
+
+              {/* Media */}
+              <div
                 className="project-media"
                 onClick={() => handleImageClick(project)}
               >
+
                 {project.media_type === 'image' ? (
-                  <img 
-                    src={project.media_url} 
+
+                  <img
+                    src={project.media_url}
                     alt={project.title}
                     title="Click to view full size"
                   />
+
                 ) : (
+
                   <video controls>
-                    <source src={project.media_url} type="video/mp4" />
-                    Your browser does not support the video tag.
+                    <source
+                      src={project.media_url}
+                      type="video/mp4"
+                    />
+                    Your browser does not support video.
                   </video>
+
                 )}
+
               </div>
+
+              {/* Info */}
               <div className="project-info">
                 <h3>{project.title}</h3>
                 <p>{project.description}</p>
               </div>
+
             </motion.div>
+
           ))}
+
         </div>
       )}
 
       {/* Image Zoom Modal */}
       <AnimatePresence>
+
         {zoomedImage && (
-          <motion.div 
+
+          <motion.div
             className="image-zoom-modal"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeZoom}
           >
-            <motion.div 
+
+            <motion.div
               className="image-zoom-content"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <button 
-                className="image-zoom-close" 
+
+              {/* Close Button */}
+              <button
+                className="image-zoom-close"
                 onClick={closeZoom}
-                title="Close (or click outside)"
+                title="Close"
               >
                 ×
               </button>
-              <img 
-                src={zoomedImage.media_url} 
+
+              {/* Image */}
+              <img
+                src={zoomedImage.media_url}
                 alt={zoomedImage.title}
               />
+
+              {/* Info */}
               <div className="image-zoom-info">
                 <h3>{zoomedImage.title}</h3>
                 <p>{zoomedImage.description}</p>
               </div>
+
             </motion.div>
+
           </motion.div>
+
         )}
+
       </AnimatePresence>
+
     </div>
   );
 };
